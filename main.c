@@ -1,21 +1,31 @@
 #include "codexion.h"
 
-void printing(s_coder *coder, int task)
+int printing(s_coder *coder, int task)
 {
     int i;
-    if (*(coder->stop) == 1)
-        return ;
+
     pthread_mutex_lock(coder->print);
     i = stop_timer(coder->g_time);
+    if (*(coder->stop))
+    {
+        pthread_mutex_unlock(coder->print);
+        return (0);
+    }
     if (task == 1)
         printf("%d  %d is compiling\n", i, coder->id);
-    if (task == 2)
+    else if (task == 2)
         printf("%d  %d is debugging\n", i, coder->id);
-    if (task == 3)
+    else if (task == 3)
         printf("%d  %d is refactoring\n", i, coder->id);
-    if (task == 4)
+    else if (task == 4)
         printf("%d  %d has taken a dongle\n",i, coder->id);
+    else if (task == 5)
+        {
+            *(coder->stop) = 1;
+             printf("%d  %d burnout\n",i, coder->id);
+        }
     pthread_mutex_unlock(coder->print);
+    return (1);
 }
 
 s_coder *init_coders(s_parameters par, s_dongle *dongles)
@@ -38,11 +48,11 @@ s_coder *init_coders(s_parameters par, s_dongle *dongles)
         coders[i].id = i + 1;
         coders[i].nb_compiles = 0;
         coders[i].check_time = 0;
-        coders[i].nb_compiles = 0;
         coders[i].g_time = g_time;
         coders[i].right = &dongles[i];
         coders[i].stop = stop;
         coders[i].print = print;
+        pthread_mutex_init(&(coders[i].mutex), NULL);
         if (i == 0)
             coders[i].left = &dongles[par.nb_coders - 1];
         else
@@ -66,14 +76,14 @@ s_dongle *init_dongles(s_parameters par)
         pthread_cond_init(&dongles[i].cond, NULL);
         dongles[i].available = 1;
         dongles[i].check_time = 0;
-        dongles[i].queue.rear = NULL;
-        dongles[i].queue.front = NULL;
+        dongles[i].queue.rear.coder_id = 0;
+        dongles[i].queue.front.coder_id = 0;
         i++;
     }
     return (dongles);
 }
 
-void ft_clean(s_coder *coders, s_dongle *dongles, int nb_coders)
+void ft_clean(s_coder *coders, s_dongle *dongles, pthread_t *t, int nb_coders)
 {
     int i;
 
@@ -85,11 +95,13 @@ void ft_clean(s_coder *coders, s_dongle *dongles, int nb_coders)
     while(i < nb_coders)
     {
         pthread_mutex_destroy(&dongles[i].mutex);
+        pthread_mutex_destroy(&coders[i].mutex);
         pthread_cond_destroy(&dongles[i].cond);
         i++;
     }
     free(coders);
     free(dongles);
+    free(t);
 }
 
 int is_int(char *str)
@@ -160,7 +172,9 @@ int main(int argc, char **argv)
     while (i++ < par.nb_coders - 1)
         pthread_create(&threads[i], NULL, coder_routine, (void *) &coders[i]);
     pthread_create(&threads[par.nb_coders], NULL, monitoring, (void *) &arg);
-    pthread_join(threads[par.nb_coders], NULL);
-    ft_clean(coders, dongles, par.nb_coders);
+    i = 0;
+    while(i <= par.nb_coders)
+        pthread_join(threads[i++], NULL);
+    ft_clean(coders, dongles, threads, par.nb_coders);
     return (0);
 }

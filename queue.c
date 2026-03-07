@@ -1,46 +1,36 @@
 #include "codexion.h"
 
-void enqueue(t_queue *q, int id, int duration, int edf)
-{
-    t_node *new = malloc(sizeof(t_node));
+void enqueue(t_queue *q, int id, int duration, int edf) {
+    t_node new;
+    int a;
+    int b;
 
-    new->coder_id = id;
-    new->duration = duration;
-    new->next = NULL;
-
-    if (q->front == NULL)
+    new.coder_id = id;
+    new.duration = duration;
+    if ((q->front).coder_id == 0)
     {
         q->front = new;
-        q->rear = NULL;
-        return;
     }
-
-    q->rear = new;
-    if (edf && q->rear->duration > q->front->duration)
+    else 
     {
-        new = q->front;
-        q->front = q->rear;
         q->rear = new;
+        a =(q->rear).duration;
+        b = (q->front).duration ;
+        if (edf && a > b)
+        {
+            q->rear = q->front;
+            q->front = new;
+        }
     }
 }
 
 void dequeue(t_queue *q)
 {
-    t_node *tmp;
-
-    if (q->front == NULL)
-        return;
-
-    tmp = q->front;
     q->front = q->rear;
-    q->rear = NULL;
-    free(tmp);
+    q->rear.coder_id = 0;
 }
 
 int front(t_queue *q)
 {
-    if (q->front == NULL)
-        return (-1);
-
-    return (q->front->coder_id);
+    return ((q->front).coder_id);
 }

@@ -7,10 +7,12 @@ void start_timer(s_timer *t)
 
 int stop_timer(s_timer *t)
 {
-    gettimeofday(&t->end, NULL);
+    struct timeval now;
+    int elapsed;
 
-    t->elapsed =
-        ((t->end.tv_sec - t->start.tv_sec) * 1000)
-        + ((t->end.tv_usec - t->start.tv_usec) / 1000);
-    return(t->elapsed);
+    gettimeofday(&now, NULL);
+    elapsed =
+        ((now.tv_sec - t->start.tv_sec) * 1000)
+        + ((now.tv_usec - t->start.tv_usec) / 1000);
+    return (elapsed);
 }
