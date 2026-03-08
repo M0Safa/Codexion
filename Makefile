@@ -1,5 +1,5 @@
 NAME = codexion
-SRCS = main.c dongle.c queue.c thread_routines.c time.c 
+SRCS = main.c dongle.c queue.c coders.c monitoring.c time.c validation.c
 OBJS = ${SRCS:.c=.o}
 CC = cc
 CFLAGS = -Wall -Wextra -Werror -pthread

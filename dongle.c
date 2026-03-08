@@ -1,36 +1,68 @@
 #include "codexion.h"
 
-void unlock_dongle(s_dongle *d)
+void	unlock_dongle(t_dongle *dl, t_dongle *dr)
 {
-    pthread_mutex_lock(&d->mutex);
-    start_timer(&d->time);
-    d->check_time = 1;
-    pthread_mutex_unlock(&d->mutex);
+	pthread_mutex_lock(&dl->mutex);
+	pthread_mutex_lock(&dr->mutex);
+	start_timer(&dl->time);
+	start_timer(&dr->time);
+	dl->available = 1;
+	dr->available = 1;
+	pthread_mutex_unlock(&dl->mutex);
+	pthread_mutex_unlock(&dr->mutex);
 }
 
-void release_dongle(s_dongle *d, int cooldown)
+bool	dongle_avail(t_dongle *dl, t_dongle *dr, int c)
 {
-    pthread_mutex_lock(&d->mutex);
-    if(d->check_time)
-    {
-        if (stop_timer(&d->time) > cooldown)
-        {
-            d->available = 1;
-            d->check_time = 0;
-            pthread_cond_broadcast(&d->cond);
-        }
-    }
-    pthread_mutex_unlock(&d->mutex);
+	bool	avail;
+
+	pthread_mutex_lock(&dl->mutex);
+	pthread_mutex_lock(&dr->mutex);
+	if (!(dl->available) || !(dr->available))
+		avail = false;
+	else if (stop_timer(&dl->time) < c || stop_timer(&dr->time) < c)
+		avail = false;
+	else
+		avail = true;
+	pthread_mutex_unlock(&dl->mutex);
+	pthread_mutex_unlock(&dr->mutex);
+	return (avail);
 }
 
-void request_dongle(s_dongle *d, s_coder *coder)
+void	lock_dongle(t_dongle *dl, t_dongle *dr)
 {
-    pthread_mutex_lock(&d->mutex);
-    enqueue(&d->queue, coder->id, what_time(coder), (coder->par).edf);
-    while (!d->available || front(&d->queue) != coder->id)
-        pthread_cond_wait(&d->cond, &d->mutex);
-    d->available = 0;
-    dequeue(&d->queue);
-    printing(coder, 4);
-    pthread_mutex_unlock(&d->mutex);
+	pthread_mutex_lock(&dl->mutex);
+	pthread_mutex_lock(&dr->mutex);
+	dl->available = 0;
+	dr->available = 0;
+	pthread_mutex_unlock(&dl->mutex);
+	pthread_mutex_unlock(&dr->mutex);
+}
+
+bool	request_dongle(t_coder *coder, t_dongle *dl, t_dongle *dr)
+{
+	pthread_mutex_lock(coder->queue_lock);
+	enqueue(coder->queue, coder);
+	pthread_mutex_unlock(coder->queue_lock);
+	while (true)
+	{
+		pthread_mutex_lock(coder->queue_lock);
+		if (front(*(coder->queue), (coder->par).edf) == coder->id)
+		{
+			lock_dongle(dl, dr);
+			queue_pop(coder->queue, coder->id);
+			pthread_mutex_unlock(coder->queue_lock);
+			printing(coder, 4);
+			return (1);
+		}
+		pthread_mutex_unlock(coder->queue_lock);
+		if (*(coder->stop))
+		{
+			pthread_mutex_lock(coder->queue_lock);
+			queue_pop(coder->queue, coder->id);
+			pthread_mutex_unlock(coder->queue_lock);
+			return (0);
+		}
+		usleep(100);
+	}
 }
