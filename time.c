@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   time.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: mosafa <mosafa@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/03/09 21:42:55 by mosafa            #+#    #+#             */
+/*   Updated: 2026/03/09 21:42:55 by mosafa           ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "codexion.h"
 
 void	start_timer(t_timer *t)
@@ -7,9 +19,9 @@ void	start_timer(t_timer *t)
 
 long	stop_timer(t_timer *t)
 {
-	struct		timeval now;
-	long long	seconds;
-	long long	useconds;
+	struct timeval	now;
+	long long		seconds;
+	long long		useconds;
 
 	gettimeofday(&now, NULL);
 	seconds = now.tv_sec - t->start.tv_sec;

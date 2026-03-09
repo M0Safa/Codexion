@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   queue.c                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: mosafa <mosafa@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/03/09 21:42:33 by mosafa            #+#    #+#             */
+/*   Updated: 2026/03/09 21:42:33 by mosafa           ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "codexion.h"
 
 t_queue	*queuenew(t_coder *coder)
@@ -77,7 +89,7 @@ void	queue_pop(t_queue **head, int id)
 		prev = tmp;
 		tmp = tmp->next;
 	}
-	if (tmp == NULL) 
+	if (tmp == NULL)
 		return ;
 	prev->next = tmp->next;
 	free(tmp);
