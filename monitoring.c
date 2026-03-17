@@ -26,10 +26,10 @@ void	*monitoring(void *arg)
 		flag = 0;
 		while (j < (coders->par).nb_coders)
 		{
-			if (!*((coders[j]).stop))
+			if (what_time(&(coders[j])) > (coders->par).burnout)
 			{
-				if (what_time(&(coders[j])) > (coders->par).burnout)
-					return (printing(&(coders[j]), 5), NULL);
+				printing(&(coders[j]), 5);
+				return (NULL);
 			}
 			if ((coders[j++]).nb_compiles != -1)
 				flag = 1;

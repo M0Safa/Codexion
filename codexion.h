@@ -50,6 +50,7 @@ typedef struct s_dongle
 {
 	pthread_mutex_t	mutex;
 	bool			available;
+	bool			check_time;
 	t_timer			time;
 }	t_dongle;
 
@@ -74,7 +75,7 @@ void			start_timer(t_timer *t);
 long			stop_timer(t_timer *t);
 void			*coder_routine(void *arg);
 void			*monitoring(void *args);
-void			printing(t_coder *coder, int task);
+bool			printing(t_coder *coder, int task);
 long			what_time(t_coder *coder);
 void			enqueue(t_queue **lst, t_coder *coder);
 int				front(t_queue *head, bool edf);

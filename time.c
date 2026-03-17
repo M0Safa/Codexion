@@ -20,13 +20,15 @@ void	start_timer(t_timer *t)
 long	stop_timer(t_timer *t)
 {
 	struct timeval	now;
-	long long		seconds;
-	long long		useconds;
+	long long		start_us;
+	long long		now_us;
 
 	gettimeofday(&now, NULL);
-	seconds = now.tv_sec - t->start.tv_sec;
-	useconds = now.tv_usec - t->start.tv_usec;
-	return ((long)((seconds * 1000) + (useconds / 1000)));
+	start_us = ((long long)t->start.tv_sec * 1000LL)
+		+ ((long long)t->start.tv_usec / 1000LL);
+	now_us = ((long long)now.tv_sec * 1000LL)
+		+ ((long long)now.tv_usec / 1000LL);
+	return ((long)(now_us - start_us));
 }
 
 long	what_time(t_coder *coder)

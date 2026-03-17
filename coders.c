@@ -14,16 +14,16 @@
 
 bool	debug_refactor(t_coder *coder)
 {
-	if (*(coder->stop))
+	if (!printing(coder, 0))
 		return (false);
 	printing(coder, 2);
 	usleep((coder->par).debug * 1000);
-	if (*(coder->stop))
+	if (!printing(coder, 0))
 		return (false);
 	printing(coder, 3);
 	usleep((coder->par).refactor * 1000);
 	coder->nb_compiles ++;
-	if (*(coder->stop))
+	if (!printing(coder, 0))
 		return (false);
 	return (true);
 }

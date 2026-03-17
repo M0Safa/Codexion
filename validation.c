@@ -46,6 +46,7 @@ t_coder	*init_coders(t_parameters par, t_dongle *dongles)
 
 	i = 0;
 	g_time = malloc(sizeof(t_timer));
+	memset(g_time, 0, sizeof(t_timer));
 	coders = malloc(sizeof(t_coder) * par.nb_coders);
 	while (i < par.nb_coders)
 	{
@@ -75,8 +76,8 @@ t_dongle	*init_dongles(t_parameters par)
 	while (i < par.nb_coders)
 	{
 		pthread_mutex_init(&(dongles[i].mutex), NULL);
-		start_timer(&(dongles[i].time));
 		dongles[i].available = true;
+		dongles[i].check_time = false;
 		i++;
 	}
 	return (dongles);

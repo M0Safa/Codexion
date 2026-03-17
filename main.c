@@ -12,31 +12,31 @@
 
 #include "codexion.h"
 
-void	printing(t_coder *coder, int task)
+bool	printing(t_coder *coder, int task)
 {
 	long	i;
+	bool	avail;
 
-	pthread_mutex_lock(coder->print);
+	avail = true;
 	i = stop_timer(coder->g_time);
+	pthread_mutex_lock(coder->print);
 	if (*(coder->stop))
-		pthread_mutex_unlock(coder->print);
-	else if (task == 1)
+		avail = false;
+	else if (task == 1 && avail)
 		printf("%ld  %d is compiling\n", i, coder->id);
-	else if (task == 2)
+	else if (task == 2 && avail)
 		printf("%ld  %d is debugging\n", i, coder->id);
-	else if (task == 3)
+	else if (task == 3 && avail)
 		printf("%ld  %d is refactoring\n", i, coder->id);
-	else if (task == 4)
-	{
+	else if (task == 4 && avail)
 		printf ("%ld  %d has taken a dongle\n", i, coder->id);
-		printf ("%ld  %d has taken a dongle\n", i, coder->id);
-	}
-	else if (task == 5)
+	else if (task == 5 && avail)
 	{
+		printf ("%ld  %d burned out\n", i, coder->id);
 		*(coder->stop) = 1;
-		printf ("%ld  %d burnout\n", i, coder->id);
 	}
 	pthread_mutex_unlock(coder->print);
+	return (avail);
 }
 
 void	ft_clean(t_coder *coders, t_dongle *dongles, pthread_t *t, int n)
