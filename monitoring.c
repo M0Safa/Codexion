@@ -31,10 +31,47 @@ void	*monitoring(void *arg)
 				printing(&(coders[j]), 5);
 				return (NULL);
 			}
-			if ((coders[j++]).nb_compiles != -1)
+			if (get_nb_com(&coders[j++]) != -1)
 				flag = 1;
 		}
-		usleep(100);
+		ft_usleep(100);
+	}
+	return (NULL);
+}
+
+
+void	*scheduller(void *arg)
+{
+	t_coder	*coders;
+	int		j;
+	int		flag;
+	int		f;
+
+	coders = (t_coder *) arg;
+	flag = 1;
+	while (flag)
+	{
+		j = 0;
+		flag = 0;
+		while (j < (coders->par).nb_coders)
+		{
+			if (get_nb_com(&coders[j++]) != -1)
+				flag = 1;
+		}
+		if(!printing(coders, 0))
+			return (NULL);
+		pthread_mutex_lock(coders->queue_lock);
+		f = front(*(coders->queue), (coders->par).edf);
+		if (f != 0)
+		{
+			lock_dongle(&coders[f - 1], coders[f - 1].left, coders[f - 1].right);
+			queue_pop(coders->queue, f);
+			pthread_mutex_lock(&coders[f - 1].mutex);
+			coders[f - 1].check_time = false;
+			pthread_mutex_unlock(&coders[f - 1].mutex);
+		}
+		pthread_mutex_unlock(coders->queue_lock);
+		ft_usleep(100);
 	}
 	return (NULL);
 }

@@ -50,6 +50,8 @@ int	front(t_queue *head, bool edf)
 	int		cooldown;
 	t_coder	*coder;
 
+	if (head == NULL)
+		return (0);
 	cooldown = (head->coder->par).cooldown;
 	max = 0;
 	id = 0;
@@ -60,9 +62,9 @@ int	front(t_queue *head, bool edf)
 		{
 			if (!edf)
 				return (coder->id);
-			if (stop_timer(&coder->time) > max)
+			if (what_time(coder) > max)
 			{
-				max = stop_timer(&coder->time);
+				max = what_time(coder);
 				id = coder->id;
 			}
 		}

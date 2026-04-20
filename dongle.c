@@ -39,14 +39,18 @@ bool	dongle_avail(t_dongle *dl, t_dongle *dr, int c)
 	bool	avail;
 
 	pthread_mutex_lock(&dl->mutex);
-	pthread_mutex_lock(&dr->mutex);
-	if (!(dl->available) || !(dr->available))
+	if (!(dl->available))
 		avail = false;
-	else if (!dongle_time(dl, c) || !dongle_time(dr, c))
+	else if (!dongle_time(dl, c))
 		avail = false;
 	else
 		avail = true;
 	pthread_mutex_unlock(&dl->mutex);
+	pthread_mutex_lock(&dr->mutex);
+	if (!(dr->available))
+		avail = false;
+	else if (!dongle_time(dr, c))
+		avail = false;
 	pthread_mutex_unlock(&dr->mutex);
 	return (avail);
 }
@@ -63,22 +67,20 @@ void	lock_dongle(t_coder *c, t_dongle *dl, t_dongle *dr)
 	pthread_mutex_unlock(&dr->mutex);
 }
 
-bool	request_dongle(t_coder *coder, t_dongle *dl, t_dongle *dr)
+bool	request_dongle(t_coder *coder)
 {
+	bool finished;
+
 	pthread_mutex_lock(coder->queue_lock);
 	enqueue(coder->queue, coder);
 	pthread_mutex_unlock(coder->queue_lock);
 	while (true)
 	{
-		pthread_mutex_lock(coder->queue_lock);
-		if (front(*(coder->queue), (coder->par).edf) == coder->id)
-		{
-			lock_dongle(coder, dl, dr);
-			queue_pop(coder->queue, coder->id);
-			pthread_mutex_unlock(coder->queue_lock);
+		pthread_mutex_lock(&coder->mutex);
+		finished = coder->check_time;
+		pthread_mutex_unlock(&coder->mutex);
+		if (!finished)
 			return (1);
-		}
-		pthread_mutex_unlock(coder->queue_lock);
 		if (!printing(coder, 0))
 		{
 			pthread_mutex_lock(coder->queue_lock);
@@ -86,6 +88,6 @@ bool	request_dongle(t_coder *coder, t_dongle *dl, t_dongle *dr)
 			pthread_mutex_unlock(coder->queue_lock);
 			return (0);
 		}
-		usleep(100);
+		ft_usleep(100);
 	}
 }

@@ -43,3 +43,20 @@ long	what_time(t_coder *coder)
 	pthread_mutex_unlock(&coder->mutex);
 	return (i);
 }
+
+void	ft_usleep(long usec)
+{
+	struct timeval	start;
+	struct timeval	now;
+	long			elapsed;
+
+	gettimeofday(&start, NULL);
+	while (1)
+	{
+		gettimeofday(&now, NULL);
+		elapsed = (now.tv_sec - start.tv_sec) * 1000000 + 
+		          (now.tv_usec - start.tv_usec);
+		if (elapsed >= usec)
+			break ;
+	}
+}
