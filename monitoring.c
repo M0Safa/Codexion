@@ -39,37 +39,42 @@ void	*monitoring(void *arg)
 	return (NULL);
 }
 
+void	sch_helper(t_coder *coder)
+{
+	lock_dongle(coder);
+	queue_pop(coder->queue, coder->id);
+	pthread_mutex_lock(&(coder->mutex));
+	coder->check_time = false;
+	pthread_mutex_unlock(&(coder->mutex));
+}
+
+bool	is_finished(t_coder *coders)
+{
+	int		j;
+
+	j = 0;
+	while (j < (coders->par).nb_coders)
+	{
+		if (get_nb_com(&coders[j++]) != -1)
+			return (false);
+	}
+	return (true);
+}
 
 void	*scheduller(void *arg)
 {
 	t_coder	*coders;
-	int		j;
-	int		flag;
 	int		f;
 
 	coders = (t_coder *) arg;
-	flag = 1;
-	while (flag)
+	while (!is_finished(coders))
 	{
-		j = 0;
-		flag = 0;
-		while (j < (coders->par).nb_coders)
-		{
-			if (get_nb_com(&coders[j++]) != -1)
-				flag = 1;
-		}
-		if(!printing(coders, 0))
+		if (!printing(coders, 0))
 			return (NULL);
 		pthread_mutex_lock(coders->queue_lock);
 		f = front(*(coders->queue), (coders->par).edf);
 		if (f != 0)
-		{
-			lock_dongle(&coders[f - 1], coders[f - 1].left, coders[f - 1].right);
-			queue_pop(coders->queue, f);
-			pthread_mutex_lock(&coders[f - 1].mutex);
-			coders[f - 1].check_time = false;
-			pthread_mutex_unlock(&coders[f - 1].mutex);
-		}
+			sch_helper(&coders[f - 1]);
 		pthread_mutex_unlock(coders->queue_lock);
 		ft_usleep(100);
 	}

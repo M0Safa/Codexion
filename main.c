@@ -83,8 +83,8 @@ int	main(int argc, char **argv)
 	i = -1;
 	while (i++ < par.nb_coders - 1)
 		pthread_create(&threads[i], NULL, coder_routine, (void *) &coders[i]);
-	pthread_create(&threads[par.nb_coders], NULL, monitoring, (void *) coders);
-	pthread_create(&threads[par.nb_coders + 1], NULL, scheduller, (void *) coders);
+	pthread_create(&threads[i++], NULL, monitoring, (void *) coders);
+	pthread_create(&threads[i], NULL, scheduller, (void *) coders);
 	i = 0;
 	while (i <= par.nb_coders + 1)
 		pthread_join(threads[i++], NULL);

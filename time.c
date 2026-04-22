@@ -54,8 +54,8 @@ void	ft_usleep(long usec)
 	while (1)
 	{
 		gettimeofday(&now, NULL);
-		elapsed = (now.tv_sec - start.tv_sec) * 1000000 + 
-		          (now.tv_usec - start.tv_usec);
+		elapsed = (now.tv_sec - start.tv_sec) * 1000000;
+		elapsed += (now.tv_usec - start.tv_usec);
 		if (elapsed >= usec)
 			break ;
 	}

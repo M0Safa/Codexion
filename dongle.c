@@ -55,8 +55,13 @@ bool	dongle_avail(t_dongle *dl, t_dongle *dr, int c)
 	return (avail);
 }
 
-void	lock_dongle(t_coder *c, t_dongle *dl, t_dongle *dr)
+void	lock_dongle(t_coder *c)
 {
+	t_dongle	*dl;
+	t_dongle	*dr;
+
+	dl = c->left;
+	dr = c->right;
 	pthread_mutex_lock(&dl->mutex);
 	dl->available = 0;
 	printing(c, 4);
@@ -69,7 +74,7 @@ void	lock_dongle(t_coder *c, t_dongle *dl, t_dongle *dr)
 
 bool	request_dongle(t_coder *coder)
 {
-	bool finished;
+	bool	finished;
 
 	pthread_mutex_lock(coder->queue_lock);
 	enqueue(coder->queue, coder);

@@ -88,7 +88,7 @@ t_parameters	validation(char **argv);
 t_dongle		*init_dongles(t_parameters par);
 t_coder			*init_coders(t_parameters par, t_dongle *dongles);
 int				get_nb_com(t_coder *coder);
-void			lock_dongle(t_coder *c, t_dongle *dl, t_dongle *dr);
+void			lock_dongle(t_coder *c);
 void			*scheduller(void *arg);
 void			ft_usleep(long usec);
 

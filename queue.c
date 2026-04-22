@@ -48,24 +48,20 @@ int	front(t_queue *head, bool edf)
 	int		max;
 	int		id;
 	int		cooldown;
-	t_coder	*coder;
 
-	if (head == NULL)
-		return (0);
-	cooldown = (head->coder->par).cooldown;
 	max = 0;
 	id = 0;
 	while (head)
 	{
-		coder = head->coder;
-		if (dongle_avail(coder->left, coder->right, cooldown))
+		cooldown = (head->coder->par).cooldown;
+		if (dongle_avail(head->coder->left, head->coder->right, cooldown))
 		{
 			if (!edf)
-				return (coder->id);
-			if (what_time(coder) > max)
+				return (head->coder->id);
+			if (what_time(head->coder) > max)
 			{
-				max = what_time(coder);
-				id = coder->id;
+				max = what_time(head->coder);
+				id = head->coder->id;
 			}
 		}
 		head = head->next;
