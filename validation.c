@@ -56,6 +56,7 @@ t_coder	*init_coders(t_parameters par, t_dongle *dongles)
 		coders[i].g_time = g_time;
 		coders[i].right = &dongles[i];
 		pthread_mutex_init(&(coders[i].mutex), NULL);
+		pthread_cond_init(&(coders[i].cond), NULL);
 		if (i == 0)
 			coders[i].left = &dongles[par.nb_coders - 1];
 		else

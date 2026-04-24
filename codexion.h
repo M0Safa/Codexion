@@ -20,6 +20,7 @@
 # include <stdlib.h>
 # include <string.h>
 # include <stdbool.h>
+# include <errno.h>
 
 struct	s_coder;
 
@@ -68,6 +69,7 @@ typedef struct s_coder
 	pthread_mutex_t	mutex;
 	pthread_mutex_t	*queue_lock;
 	t_queue			**queue;
+	pthread_cond_t  cond;
 	t_parameters	par;
 }	t_coder;
 
@@ -89,7 +91,7 @@ t_dongle		*init_dongles(t_parameters par);
 t_coder			*init_coders(t_parameters par, t_dongle *dongles);
 int				get_nb_com(t_coder *coder);
 void			lock_dongle(t_coder *c);
-void			*scheduller(void *arg);
-void			ft_usleep(long usec);
+bool			ft_usleep(t_coder *coder, long usec);
+void			ft_sleep(long usec);
 
 #endif

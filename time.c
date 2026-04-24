@@ -44,19 +44,55 @@ long	what_time(t_coder *coder)
 	return (i);
 }
 
-void	ft_usleep(long usec)
-{
-	struct timeval	start;
-	struct timeval	now;
-	long			elapsed;
 
-	gettimeofday(&start, NULL);
-	while (1)
+bool	ft_usleep(t_coder *coder, long usec)
+{
+	struct timespec	ts;
+	struct timeval	tv;
+	int				result;
+
+	pthread_mutex_lock(&coder->mutex);
+	if (!printing(coder, 0))
 	{
-		gettimeofday(&now, NULL);
-		elapsed = (now.tv_sec - start.tv_sec) * 1000000;
-		elapsed += (now.tv_usec - start.tv_usec);
-		if (elapsed >= usec)
-			break ;
+		pthread_mutex_unlock(&coder->mutex);
+		return (false);
 	}
+	gettimeofday(&tv, NULL);
+	ts.tv_sec = tv.tv_sec + (usec / 1000000);
+	ts.tv_nsec = (tv.tv_usec + (usec % 1000000)) * 1000;
+	if (ts.tv_nsec >= 1000000000)
+	{
+		ts.tv_sec++;
+		ts.tv_nsec -= 1000000000;
+	}
+	result = pthread_cond_timedwait(&coder->cond, &coder->mutex, &ts);
+	pthread_mutex_unlock(&coder->mutex);
+
+	if (result == ETIMEDOUT)
+		return (true);
+	return (false);
+}
+
+void	ft_sleep(long usec)
+{
+	struct timespec	ts;
+	struct timeval	tv;
+	pthread_mutex_t	dummy_mutex;
+	pthread_cond_t	dummy_cond;
+
+	pthread_mutex_init(&dummy_mutex, NULL);
+	pthread_cond_init(&dummy_cond, NULL);
+	gettimeofday(&tv, NULL);
+	ts.tv_sec = tv.tv_sec + (usec / 1000000);
+	ts.tv_nsec = (tv.tv_usec + (usec % 1000000)) * 1000;
+	if (ts.tv_nsec >= 1000000000)
+	{
+		ts.tv_sec++;
+		ts.tv_nsec -= 1000000000;
+	}
+	pthread_mutex_lock(&dummy_mutex);
+	pthread_cond_timedwait(&dummy_cond, &dummy_mutex, &ts);
+	pthread_mutex_unlock(&dummy_mutex);
+	pthread_mutex_destroy(&dummy_mutex);
+	pthread_cond_destroy(&dummy_cond);
 }

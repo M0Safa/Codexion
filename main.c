@@ -56,6 +56,7 @@ void	ft_clean(t_coder *coders, t_dongle *dongles, pthread_t *t, int n)
 	{
 		pthread_mutex_destroy(&dongles[i].mutex);
 		pthread_mutex_destroy(&coders[i].mutex);
+		pthread_cond_destroy(&coders[i].cond);
 		i++;
 	}
 	free(coders);
@@ -78,15 +79,14 @@ int	main(int argc, char **argv)
 		return (0 * printf("error: you enter an invalid argument.\n"));
 	dongles = init_dongles(par);
 	coders = init_coders(par, dongles);
-	threads = malloc(sizeof(pthread_t) * (par.nb_coders + 2));
+	threads = malloc(sizeof(pthread_t) * (par.nb_coders + 1));
 	start_timer(coders[0].g_time);
 	i = -1;
 	while (i++ < par.nb_coders - 1)
 		pthread_create(&threads[i], NULL, coder_routine, (void *) &coders[i]);
-	pthread_create(&threads[i++], NULL, monitoring, (void *) coders);
-	pthread_create(&threads[i], NULL, scheduller, (void *) coders);
+	pthread_create(&threads[par.nb_coders], NULL, monitoring, (void *) coders);
 	i = 0;
-	while (i <= par.nb_coders + 1)
+	while (i <= par.nb_coders)
 		pthread_join(threads[i++], NULL);
 	return (ft_clean(coders, dongles, threads, par.nb_coders), 0);
 }

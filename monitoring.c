@@ -12,6 +12,27 @@
 
 #include "codexion.h"
 
+void	sch_helper(t_coder *coder)
+{
+	lock_dongle(coder);
+	queue_pop(coder->queue, coder->id);
+	pthread_mutex_lock(&(coder->mutex));
+	coder->check_time = false;
+	pthread_cond_broadcast(&coder->cond);
+	pthread_mutex_unlock(&(coder->mutex));
+}
+
+void	scheduller(t_coder *coders)
+{
+	int		f;
+
+		pthread_mutex_lock(coders->queue_lock);
+		f = front(*(coders->queue), (coders->par).edf);
+		if (f != 0)
+			sch_helper(&coders[f - 1]);
+		pthread_mutex_unlock(coders->queue_lock);
+}
+
 void	*monitoring(void *arg)
 {
 	t_coder	*coders;
@@ -29,54 +50,20 @@ void	*monitoring(void *arg)
 			if (what_time(&(coders[j])) > (coders->par).burnout)
 			{
 				printing(&(coders[j]), 5);
+				j = 0;
+				while (j < (coders->par).nb_coders)
+				{
+					pthread_mutex_lock(&(coders[j].mutex));
+					pthread_cond_broadcast(&(coders[j].cond));
+					pthread_mutex_unlock(&(coders[j++].mutex));	
+				}
 				return (NULL);
 			}
 			if (get_nb_com(&coders[j++]) != -1)
 				flag = 1;
+			scheduller(coders);
 		}
-		ft_usleep(100);
-	}
-	return (NULL);
-}
-
-void	sch_helper(t_coder *coder)
-{
-	lock_dongle(coder);
-	queue_pop(coder->queue, coder->id);
-	pthread_mutex_lock(&(coder->mutex));
-	coder->check_time = false;
-	pthread_mutex_unlock(&(coder->mutex));
-}
-
-bool	is_finished(t_coder *coders)
-{
-	int		j;
-
-	j = 0;
-	while (j < (coders->par).nb_coders)
-	{
-		if (get_nb_com(&coders[j++]) != -1)
-			return (false);
-	}
-	return (true);
-}
-
-void	*scheduller(void *arg)
-{
-	t_coder	*coders;
-	int		f;
-
-	coders = (t_coder *) arg;
-	while (!is_finished(coders))
-	{
-		if (!printing(coders, 0))
-			return (NULL);
-		pthread_mutex_lock(coders->queue_lock);
-		f = front(*(coders->queue), (coders->par).edf);
-		if (f != 0)
-			sch_helper(&coders[f - 1]);
-		pthread_mutex_unlock(coders->queue_lock);
-		ft_usleep(100);
+		ft_sleep(400);
 	}
 	return (NULL);
 }
