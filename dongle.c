@@ -22,7 +22,7 @@ void	unlock_dongle(t_dongle *dl, t_dongle *dr)
 		first = dl;
 		second = dr;
 	}
-	else 
+	else
 	{
 		first = dr;
 		second = dl;
@@ -50,15 +50,17 @@ bool	dongle_time(t_dongle *d, int c)
 bool	dongle_avail(t_dongle *dl, t_dongle *dr, int c)
 {
 	bool		avail;
-	t_dongle	*first;
-	t_dongle	*second;
 
-	if (dl < dr) { first = dl; second = dr; }
-	else { first = dr; second = dl; }
-
-	pthread_mutex_lock(&first->mutex);
-	pthread_mutex_lock(&second->mutex);
-
+	if (dl < dr)
+	{
+		pthread_mutex_lock(&dl->mutex);
+		pthread_mutex_lock(&dr->mutex);
+	}
+	else
+	{
+		pthread_mutex_lock(&dr->mutex);
+		pthread_mutex_lock(&dl->mutex);
+	}
 	avail = true;
 	if (!dl->available || !dr->available)
 		avail = false;
@@ -66,9 +68,8 @@ bool	dongle_avail(t_dongle *dl, t_dongle *dr, int c)
 		avail = false;
 	else if (dr->check_time && stop_timer(&dr->time) < c)
 		avail = false;
-
-	pthread_mutex_unlock(&first->mutex);
-	pthread_mutex_unlock(&second->mutex);
+	pthread_mutex_unlock(&dl->mutex);
+	pthread_mutex_unlock(&dr->mutex);
 	return (avail);
 }
 
@@ -80,11 +81,11 @@ void	lock_dongle(t_coder *c)
 	if (c->left < c->right)
 	{
 		first = c->left;
-		second =  c->right;
+		second = c->right;
 	}
-	else 
+	else
 	{
-		first =  c->right;
+		first = c->right;
 		second = c->left;
 	}
 	pthread_mutex_lock(&first->mutex);
@@ -103,15 +104,15 @@ bool	request_dongle(t_coder *coder)
 	enqueue(coder->queue, coder);
 	pthread_mutex_unlock(coder->queue_lock);
 	pthread_mutex_lock(&coder->mutex);
-    while (coder->check_time)
-    {
-        pthread_cond_wait(&coder->cond, &coder->mutex);
-        if (!printing(coder, 0)) 
-        {
-            pthread_mutex_unlock(&coder->mutex);
-            return (false);
-        }
-    }
-    pthread_mutex_unlock(&coder->mutex);
-    return (true);
+	while (coder->check_time)
+	{
+		pthread_cond_wait(&coder->cond, &coder->mutex);
+		if (!printing(coder, 0))
+		{
+			pthread_mutex_unlock(&coder->mutex);
+			return (false);
+		}
+	}
+	pthread_mutex_unlock(&coder->mutex);
+	return (true);
 }

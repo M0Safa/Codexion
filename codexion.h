@@ -69,7 +69,7 @@ typedef struct s_coder
 	pthread_mutex_t	mutex;
 	pthread_mutex_t	*queue_lock;
 	t_queue			**queue;
-	pthread_cond_t  cond;
+	pthread_cond_t	cond;
 	t_parameters	par;
 }	t_coder;
 

@@ -26,11 +26,25 @@ void	scheduller(t_coder *coders)
 {
 	int		f;
 
-		pthread_mutex_lock(coders->queue_lock);
-		f = front(*(coders->queue), (coders->par).edf);
-		if (f != 0)
-			sch_helper(&coders[f - 1]);
-		pthread_mutex_unlock(coders->queue_lock);
+	pthread_mutex_lock(coders->queue_lock);
+	f = front(*(coders->queue), (coders->par).edf);
+	if (f != 0)
+		sch_helper(&coders[f - 1]);
+	pthread_mutex_unlock(coders->queue_lock);
+}
+
+void	allert_coders(t_coder *coders, int i)
+{
+	int	j;
+
+	printing(&(coders[i]), 5);
+	j = 0;
+	while (j < (coders->par).nb_coders)
+	{
+		pthread_mutex_lock(&(coders[j].mutex));
+		pthread_cond_broadcast(&(coders[j].cond));
+		pthread_mutex_unlock(&(coders[j++].mutex));
+	}
 }
 
 void	*monitoring(void *arg)
@@ -49,14 +63,7 @@ void	*monitoring(void *arg)
 		{
 			if (what_time(&(coders[j])) > (coders->par).burnout)
 			{
-				printing(&(coders[j]), 5);
-				j = 0;
-				while (j < (coders->par).nb_coders)
-				{
-					pthread_mutex_lock(&(coders[j].mutex));
-					pthread_cond_broadcast(&(coders[j].cond));
-					pthread_mutex_unlock(&(coders[j++].mutex));	
-				}
+				allert_coders(coders, j);
 				return (NULL);
 			}
 			if (get_nb_com(&coders[j++]) != -1)

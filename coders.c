@@ -22,13 +22,20 @@ int	get_nb_com(t_coder *coder)
 	return (i);
 }
 
+void	end_coder(t_coder *coder)
+{
+	pthread_mutex_lock(&coder->mutex);
+	coder->nb_compiles = -1;
+	pthread_mutex_unlock(&coder->mutex);
+}
+
 bool	debug_refactor(t_coder *coder)
 {
-	if(!ft_usleep(coder, (coder->par).debug * 1000))
+	if (!ft_usleep(coder, (coder->par).debug * 1000))
 		return (false);
 	if (!printing(coder, 2))
 		return (false);
-	if(!ft_usleep(coder, (coder->par).refactor * 1000))
+	if (!ft_usleep(coder, (coder->par).refactor * 1000))
 		return (false);
 	if (!printing(coder, 3))
 		return (false);
@@ -40,11 +47,25 @@ bool	debug_refactor(t_coder *coder)
 	return (true);
 }
 
+void	one_coder(t_coder *coder)
+{
+	if ((coder->par).nb_coders == 1)
+	{
+		pthread_mutex_lock(&coder->mutex);
+		start_timer(&coder->time);
+		coder->check_time = true;
+		coder->nb_compiles = (coder->par).nb_of_compiles;
+		pthread_mutex_unlock(&coder->mutex);
+		ft_usleep(coder, (coder->par).burnout * 2000);
+	}
+}
+
 void	*coder_routine(void *arg)
 {
 	t_coder	*coder;
 
 	coder = (t_coder *) arg;
+	one_coder(coder);
 	while ((get_nb_com(coder) < (coder->par).nb_of_compiles))
 	{
 		pthread_mutex_lock(&coder->mutex);
@@ -53,19 +74,17 @@ void	*coder_routine(void *arg)
 		pthread_mutex_unlock(&coder->mutex);
 		if (!request_dongle(coder))
 			break ;
-		if(!printing(coder, 1))
-			break;
+		if (!printing(coder, 1))
+			break ;
 		pthread_mutex_lock(&coder->mutex);
 		coder->check_time = false;
 		pthread_mutex_unlock(&coder->mutex);
-		if(!ft_usleep(coder, (coder->par).compile * 1000))
-			break;
+		if (!ft_usleep(coder, (coder->par).compile * 1000))
+			break ;
 		unlock_dongle(coder->left, coder->right);
 		if (!debug_refactor(coder))
 			break ;
 	}
-	pthread_mutex_lock(&coder->mutex);
-	coder->nb_compiles = -1;
-	pthread_mutex_unlock(&coder->mutex);
+	end_coder(coder);
 	return (NULL);
 }

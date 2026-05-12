@@ -44,7 +44,6 @@ long	what_time(t_coder *coder)
 	return (i);
 }
 
-
 bool	ft_usleep(t_coder *coder, long usec)
 {
 	struct timespec	ts;
@@ -67,7 +66,6 @@ bool	ft_usleep(t_coder *coder, long usec)
 	}
 	result = pthread_cond_timedwait(&coder->cond, &coder->mutex, &ts);
 	pthread_mutex_unlock(&coder->mutex);
-
 	if (result == ETIMEDOUT)
 		return (true);
 	return (false);
